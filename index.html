@@ -35,7 +35,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Syne:wght@700;800&display=swap" rel="stylesheet">
-    <!-- HLS.js CDN for M3U8 Direct Streaming -->
+    <!-- HLS.js CDN for M3U8 Direct Streaming & Resolution Switcher -->
     <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
 
     <style>
@@ -294,7 +294,7 @@
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-gray-400">
             <div class="flex items-center gap-2">
                 <span class="font-display font-extrabold text-white">StreamSphere</span>
-                <span>&copy; 2026 Glass Edition</span>
+                <span>&copy; 2026 Multi-Server Glass Edition</span>
             </div>
             <div class="flex items-center gap-4">
                 <button onclick="exportDataJSON()" class="hover:text-cyan-400 transition-colors">Ekspor Data (JSON)</button>
@@ -310,7 +310,7 @@
     </footer>
 
     <!-- ========================================== -->
-    <!-- MODAL: PLAYER & SEASON / EPISODE SELECTOR -->
+    <!-- MODAL: PLAYER & SERVER/EPISODE SELECTOR -->
     <!-- ========================================== -->
     <div id="playerModal" class="fixed inset-0 z-50 hidden flex items-center justify-center p-2 sm:p-4 bg-black/90 backdrop-blur-2xl overflow-y-auto">
         <div class="relative w-full max-w-5xl ios-glass rounded-[32px] overflow-hidden shadow-2xl flex flex-col my-auto max-h-[95vh] border border-white/10">
@@ -325,12 +325,32 @@
                 </button>
             </div>
 
+            <!-- SERVER SELECTOR BAR -->
+            <div id="serverSelectorBar" class="flex flex-wrap items-center justify-between gap-3 px-6 py-2.5 bg-black/60 border-b border-white/10 backdrop-blur-md">
+                <div class="flex items-center gap-2 overflow-x-auto py-1">
+                    <span class="text-[11px] font-black uppercase tracking-wider text-cyan-400 shrink-0 flex items-center gap-1.5">
+                        <svg class="w-3.5 h-3.5 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12h14M5 12a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v4a2 2 0 01-2 2M5 12a2 2 0 00-2 2v4a2 2 0 002 2h14a2 2 0 002-2v-4a2 2 0 00-2-2"/></svg>
+                        Pilih Server:
+                    </span>
+                    <div id="serverPillsContainer" class="flex items-center gap-2">
+                        <!-- Server pills dynamically rendered -->
+                    </div>
+                </div>
+
+                <div id="openExternalContainer" class="hidden">
+                    <a id="openExternalLink" href="#" target="_blank" class="flex items-center gap-1.5 px-3 py-1 rounded-xl bg-red-500/20 hover:bg-red-500/30 text-red-300 border border-red-500/40 text-[11px] font-bold transition-all">
+                        <svg class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 24 24"><path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/></svg>
+                        <span>Buka di YouTube</span>
+                    </a>
+                </div>
+            </div>
+
             <!-- Video Screen Container -->
             <div id="videoContainer" class="relative w-full aspect-video bg-black flex items-center justify-center overflow-hidden">
                 <video id="mainVideoPlayer" class="w-full h-full object-contain hidden" crossorigin="anonymous"></video>
                 <iframe id="iframePlayer" class="w-full h-full border-0 hidden" allowfullscreen allow="autoplay; encrypted-media"></iframe>
 
-                <!-- Custom Overlay Controls -->
+                <!-- Custom Overlay Controls for Direct Video Stream -->
                 <div id="customPlayerControls" class="absolute inset-0 bg-gradient-to-t from-black/90 via-transparent to-black/30 opacity-0 hover:opacity-100 transition-opacity duration-300 flex flex-col justify-between p-4 pointer-events-none hidden">
                     <div class="flex items-center justify-between text-white text-xs font-medium pointer-events-auto">
                         <span id="playingEpTitle" class="bg-black/60 px-3 py-1 rounded-xl backdrop-blur-md border border-white/10">Episode 1</span>
@@ -358,6 +378,14 @@
                             </div>
 
                             <div class="flex items-center gap-3">
+                                <!-- RESOLUTION / QUALITY SELECTOR -->
+                                <div id="qualitySelectorContainer" class="flex items-center gap-1 bg-black/60 px-2 py-1 rounded-xl border border-white/10">
+                                    <span class="text-[10px] text-gray-400 font-bold uppercase">Kualitas:</span>
+                                    <select id="qualitySelect" onchange="changeQualityLevel(this.value)" class="bg-transparent text-xs text-cyan-400 font-bold focus:outline-none cursor-pointer">
+                                        <option value="-1" selected>Auto</option>
+                                    </select>
+                                </div>
+
                                 <select id="speedSelect" onchange="changePlaybackSpeed(this.value)" class="bg-black/70 text-xs text-white px-2.5 py-1 rounded-xl border border-white/10 focus:outline-none">
                                     <option value="0.5">0.5x</option>
                                     <option value="1" selected>1.0x</option>
@@ -403,7 +431,6 @@
                 <!-- NETFLIX-STYLE SEASON SELECTOR & EPISODES -->
                 <div id="episodesSection" class="space-y-4 pt-2">
                     
-                    <!-- NETFLIX SEASON DROPDOWN BAR -->
                     <div class="flex flex-wrap items-center justify-between gap-3 p-3 rounded-2xl bg-black/40 border border-white/10">
                         <div class="flex items-center gap-3">
                             <span class="text-xs font-black uppercase tracking-wider text-gray-400">Pilih Musim:</span>
@@ -428,7 +455,7 @@
     </div>
 
     <!-- ========================================== -->
-    <!-- MODAL: ADD / EDIT MEDIA (MULTI-SEASON) -->
+    <!-- MODAL: ADD / EDIT MEDIA (MULTI-SERVER) -->
     <!-- ========================================== -->
     <div id="addMediaModal" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4 bg-black/85 backdrop-blur-2xl overflow-y-auto">
         <div class="relative w-full max-w-3xl ios-glass rounded-[32px] overflow-hidden shadow-2xl my-8 border border-white/10">
@@ -492,12 +519,12 @@
                     <textarea id="inputSynopsis" rows="3" placeholder="Ringkasan cerita..." class="w-full bg-black/40 text-xs text-white px-4 py-3 rounded-2xl border border-white/10 focus:outline-none focus:border-cyan-400"></textarea>
                 </div>
 
-                <!-- MULTI-SEASON BUILDER -->
+                <!-- MULTI-SEASON & MULTI-SERVER BUILDER -->
                 <div class="space-y-4 pt-4 border-t border-white/10">
                     <div class="flex items-center justify-between">
                         <div>
-                            <h4 class="text-sm font-bold text-white">Kelola Musim (Season) & Episode</h4>
-                            <p class="text-[11px] text-gray-400">Pisahkan tayangan ke beberapa musim seperti di Netflix.</p>
+                            <h4 class="text-sm font-bold text-white">Kelola Musim & Episode Multi-Server</h4>
+                            <p class="text-[11px] text-gray-400">Setiap episode mendukung beberapa pilihan server (Filemoon, Vidhide, Direct, dll).</p>
                         </div>
                         <button type="button" onclick="addNewSeasonToForm()" class="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-cyan-400/10 text-cyan-400 hover:bg-cyan-400/20 border border-cyan-400/30 text-xs font-bold transition-all">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"/></svg>
@@ -516,7 +543,7 @@
                             <span id="activeFormSeasonLabel" class="text-xs font-bold text-cyan-400">Episode Musim 1</span>
                             <button type="button" onclick="addEpisodeToActiveSeasonForm()" class="text-xs text-cyan-400 hover:underline font-bold">+ Tambah Episode</button>
                         </div>
-                        <div id="formEpisodesContainer" class="space-y-3">
+                        <div id="formEpisodesContainer" class="space-y-4">
                             <!-- Dynamic Episode Items -->
                         </div>
                     </div>
@@ -554,44 +581,54 @@
     <script>
         const DEFAULT_LIBRARY = [
             {
-                id: 'media_sample_playlist',
-                title: 'Anime Multi-Season (Playlist Youtube)',
+                id: 'media_sample_multiserver',
+                title: 'Demon Slayer: Kimetsu no Yaiba',
                 type: 'anime',
-                rating: 9.6,
+                rating: 9.7,
                 year: 2024,
                 poster: 'https://images.unsplash.com/photo-1578632767115-351597cf2477?w=600&auto=format&fit=crop&q=80',
                 banner: 'https://images.unsplash.com/photo-1534447677768-be436bb09401?w=1200&auto=format&fit=crop&q=80',
-                genres: ['Action', 'Fantasy', 'Adventure'],
-                synopsis: 'Koleksi petualangan anime seru dipisahkan secara otomatis menjadi Musim 1 dan Musim 2 ala Netflix.',
+                genres: ['Action', 'Fantasy', 'Supernatural'],
+                synopsis: 'Perjuangan Tanjiro Kamado bersama Korps Pembasmi Iblis dilengkapi pilihan Multi-Server (Server 1 YouTube, Server 2 Vidhide, Server 3 Direct Stream).',
                 seasons: [
                     {
                         seasonNumber: 1,
                         seasonTitle: 'Musim 1 (Season 1)',
                         episodes: [
-                            { title: 'Episode 1: Awal Petualangan', linkType: 'embed', url: 'https://www.youtube.com/embed?listType=playlist&list=PLAFJcVhr6Dkc&index=1' },
-                            { title: 'Episode 2: Ujian Pertama', linkType: 'embed', url: 'https://www.youtube.com/embed?listType=playlist&list=PLAFJcVhr6Dkc&index=2' },
-                            { title: 'Episode 3: Kebangkitan Kekuatan', linkType: 'embed', url: 'https://www.youtube.com/embed?listType=playlist&list=PLAFJcVhr6Dkc&index=3' },
-                            { title: 'Episode 4: Pertempuran Sengit', linkType: 'embed', url: 'https://www.youtube.com/embed?listType=playlist&list=PLAFJcVhr6Dkc&index=4' },
-                            { title: 'Episode 5: Rahasia Terungkap', linkType: 'embed', url: 'https://www.youtube.com/embed?listType=playlist&list=PLAFJcVhr6Dkc&index=5' },
-                            { title: 'Episode 6: Akhir Musim Pertama', linkType: 'embed', url: 'https://www.youtube.com/embed?listType=playlist&list=PLAFJcVhr6Dkc&index=6' }
+                            {
+                                title: 'Episode 1: Cruelty (Kekejaman)',
+                                servers: [
+                                    { name: 'Server 1 (YouTube Embed)', linkType: 'embed', url: 'https://www.youtube.com/embed/dQw4w9WgXcQ' },
+                                    { name: 'Server 2 (Direct MP4 Stream)', linkType: 'direct', url: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/TearsOfSteel.mp4' },
+                                    { name: 'Server 3 (HLS Stream)', linkType: 'direct', url: 'https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8' }
+                                ]
+                            },
+                            {
+                                title: 'Episode 2: Urokodaki Sakonji',
+                                servers: [
+                                    { name: 'Server 1 (Direct Stream)', linkType: 'direct', url: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4' },
+                                    { name: 'Server 2 (YouTube Backup)', linkType: 'embed', url: 'https://www.youtube.com/embed/dQw4w9WgXcQ' }
+                                ]
+                            }
                         ]
                     },
                     {
                         seasonNumber: 2,
-                        seasonTitle: 'Musim 2 (Season 2)',
+                        seasonTitle: 'Musim 2 (District Arc)',
                         episodes: [
-                            { title: 'Episode 1: Dunia Baru', linkType: 'embed', url: 'https://www.youtube.com/embed?listType=playlist&list=PLAFJcVhr6Dkc&index=7' },
-                            { title: 'Episode 2: Musuh Tak Terduga', linkType: 'embed', url: 'https://www.youtube.com/embed?listType=playlist&list=PLAFJcVhr6Dkc&index=8' },
-                            { title: 'Episode 3: Aliansi Kuat', linkType: 'embed', url: 'https://www.youtube.com/embed?listType=playlist&list=PLAFJcVhr6Dkc&index=9' },
-                            { title: 'Episode 4: Garis Depan', linkType: 'embed', url: 'https://www.youtube.com/embed?listType=playlist&list=PLAFJcVhr6Dkc&index=10' },
-                            { title: 'Episode 5: Puncak Konflik', linkType: 'embed', url: 'https://www.youtube.com/embed?listType=playlist&list=PLAFJcVhr6Dkc&index=11' },
-                            { title: 'Episode 6: Kemenangan Sejati', linkType: 'embed', url: 'https://www.youtube.com/embed?listType=playlist&list=PLAFJcVhr6Dkc&index=12' }
+                            {
+                                title: 'Episode 1: Sound Hashira Tengen Uzui',
+                                servers: [
+                                    { name: 'Server 1 (HLS Multi-Quality)', linkType: 'direct', url: 'https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8' },
+                                    { name: 'Server 2 (Vidhide/Embed)', linkType: 'embed', url: 'https://www.youtube.com/embed/dQw4w9WgXcQ' }
+                                ]
+                            }
                         ]
                     }
                 ]
             },
             {
-                id: 'media_1',
+                id: 'media_sample_solo',
                 title: 'Solo Leveling',
                 type: 'anime',
                 rating: 9.5,
@@ -605,8 +642,12 @@
                         seasonNumber: 1,
                         seasonTitle: 'Musim 1 (Season 1)',
                         episodes: [
-                            { title: 'Episode 1: I\'m Used to It', linkType: 'direct', url: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/TearsOfSteel.mp4' },
-                            { title: 'Episode 2: If I Had One More Chance', linkType: 'direct', url: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4' }
+                            {
+                                title: 'Episode 1: I\'m Used to It',
+                                servers: [
+                                    { name: 'Server 1 (Direct HD)', linkType: 'direct', url: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/TearsOfSteel.mp4' }
+                                ]
+                            }
                         ]
                     }
                 ]
@@ -620,6 +661,7 @@
         let currentActiveMedia = null;
         let currentSeasonIndex = 0;
         let currentEpIndex = 0;
+        let currentServerIndex = 0;
         let hlsPlayerInstance = null;
 
         // FORM BUILDER STATE
@@ -635,26 +677,47 @@
             setupKeyboardShortcuts();
         });
 
-        // DATA NORMALIZE & STORAGE
+        // DATA NORMALIZE & STORAGE (Backward Compatibility)
         function normalizeMediaData(item) {
-            if (item.seasons && Array.isArray(item.seasons) && item.seasons.length > 0) {
-                return item;
+            let seasons = item.seasons;
+
+            // If old structure with direct episodes array
+            if (!seasons || !Array.isArray(seasons) || seasons.length === 0) {
+                const eps = item.episodes || [];
+                seasons = [
+                    {
+                        seasonNumber: 1,
+                        seasonTitle: 'Musim 1 (Season 1)',
+                        episodes: eps
+                    }
+                ];
             }
-            if (item.episodes && Array.isArray(item.episodes)) {
-                return {
-                    ...item,
-                    seasons: [
-                        {
-                            seasonNumber: 1,
-                            seasonTitle: 'Musim 1 (Season 1)',
-                            episodes: item.episodes
-                        }
-                    ]
-                };
-            }
+
+            // Normalize every episode to have a 'servers' array
+            const normalizedSeasons = seasons.map((s, sIdx) => ({
+                seasonNumber: s.seasonNumber || (sIdx + 1),
+                seasonTitle: s.seasonTitle || `Musim ${sIdx + 1} (Season ${sIdx + 1})`,
+                episodes: (s.episodes || []).map((ep, epIdx) => {
+                    let servers = ep.servers;
+                    if (!servers || !Array.isArray(servers) || servers.length === 0) {
+                        servers = [
+                            {
+                                name: 'Server 1 (Default)',
+                                linkType: ep.linkType || (isEmbedUrl(ep.url || '') ? 'embed' : 'direct'),
+                                url: ep.url || ''
+                            }
+                        ];
+                    }
+                    return {
+                        title: ep.title || `Episode ${epIdx + 1}`,
+                        servers: servers
+                    };
+                })
+            }));
+
             return {
                 ...item,
-                seasons: [{ seasonNumber: 1, seasonTitle: 'Musim 1', episodes: [] }]
+                seasons: normalizedSeasons
             };
         }
 
@@ -849,7 +912,7 @@
                 const pct = Math.min(100, Math.round((prog.timestamp / (prog.duration || 1)) * 100)) || 10;
 
                 return `
-                <div onclick="openPlayerModal('${media.id}', ${prog.seasonIndex || 0}, ${prog.epIndex || 0})" class="group ios-glass-card rounded-2xl p-2.5 cursor-pointer flex items-center gap-3 transition-all hover:border-cyan-400">
+                <div onclick="openPlayerModal('${media.id}', ${prog.seasonIndex || 0}, ${prog.epIndex || 0}, ${prog.serverIndex || 0})" class="group ios-glass-card rounded-2xl p-2.5 cursor-pointer flex items-center gap-3 transition-all hover:border-cyan-400">
                     <img src="${media.poster}" class="w-14 h-18 object-cover rounded-xl shrink-0">
                     <div class="flex-grow min-w-0 space-y-1">
                         <span class="text-[9px] font-black text-cyan-400 uppercase tracking-wider">${media.type}</span>
@@ -872,14 +935,15 @@
             showToast('Riwayat menonton dibersihkan');
         }
 
-        // PLAYER MODAL WITH NETFLIX SEASON SELECTOR
-        function openPlayerModal(mediaId, seasonIdx = 0, epIdx = 0) {
+        // PLAYER MODAL WITH MULTI-SERVER & MULTI-RESOLUTION
+        function openPlayerModal(mediaId, seasonIdx = 0, epIdx = 0, serverIdx = 0) {
             const rawItem = mediaList.find(m => m.id === mediaId);
             if (!rawItem) return;
 
             currentActiveMedia = normalizeMediaData(rawItem);
             currentSeasonIndex = seasonIdx;
             currentEpIndex = epIdx;
+            currentServerIndex = serverIdx;
 
             document.getElementById('playerMediaTitle').innerText = currentActiveMedia.title;
             document.getElementById('playerMediaType').innerText = currentActiveMedia.type;
@@ -904,7 +968,7 @@
 
             renderSeasonDropdown();
             renderEpisodeGrid();
-            loadEpisodeStream(currentSeasonIndex, currentEpIndex);
+            loadEpisodeStream(currentSeasonIndex, currentEpIndex, currentServerIndex);
 
             document.getElementById('playerModal').classList.remove('hidden');
             document.body.style.overflow = 'hidden';
@@ -929,8 +993,9 @@
         function onSeasonSelectChange(seasonVal) {
             currentSeasonIndex = parseInt(seasonVal);
             currentEpIndex = 0;
+            currentServerIndex = 0;
             renderEpisodeGrid();
-            loadEpisodeStream(currentSeasonIndex, 0);
+            loadEpisodeStream(currentSeasonIndex, 0, 0);
         }
 
         function renderEpisodeGrid() {
@@ -948,12 +1013,12 @@
 
             epGrid.innerHTML = episodes.map((ep, idx) => {
                 const isActive = idx === currentEpIndex;
-                const isEmbed = ep.linkType === 'embed';
+                const serverCount = ep.servers ? ep.servers.length : 1;
 
                 return `
-                <button onclick="loadEpisodeStream(${currentSeasonIndex}, ${idx})" class="text-left p-3 rounded-2xl border ${isActive ? 'bg-cyan-500/10 border-cyan-400 text-white shadow-lg' : 'bg-black/30 hover:bg-white/5 border-white/5 text-gray-300'} transition-all flex items-center justify-between group">
+                <button onclick="loadEpisodeStream(${currentSeasonIndex}, ${idx}, 0)" class="text-left p-3 rounded-2xl border ${isActive ? 'bg-cyan-500/10 border-cyan-400 text-white shadow-lg' : 'bg-black/30 hover:bg-white/5 border-white/5 text-gray-300'} transition-all flex items-center justify-between group">
                     <div class="min-w-0 pr-2">
-                        <span class="text-[9px] font-bold ${isActive ? 'text-cyan-400' : 'text-gray-400'} uppercase">Ep ${idx + 1} • ${isEmbed ? 'Embed' : 'Stream'}</span>
+                        <span class="text-[9px] font-bold ${isActive ? 'text-cyan-400' : 'text-gray-400'} uppercase">Ep ${idx + 1} • ${serverCount} Server</span>
                         <h5 class="text-xs font-semibold truncate group-hover:text-cyan-300">${ep.title || `Episode ${idx + 1}`}</h5>
                     </div>
                     <div class="w-7 h-7 rounded-lg flex items-center justify-center shrink-0 ${isActive ? 'bg-gradient-to-r from-ps-blue to-ps-electric text-black font-extrabold' : 'bg-black/40 text-gray-400'}">
@@ -964,9 +1029,36 @@
             }).join('');
         }
 
-        function loadEpisodeStream(seasonIdx, epIdx) {
+        function renderServerPills(servers) {
+            const container = document.getElementById('serverPillsContainer');
+            if (!servers || servers.length === 0) {
+                container.innerHTML = `<span class="text-xs text-gray-400">Default Server</span>`;
+                return;
+            }
+
+            container.innerHTML = servers.map((srv, idx) => {
+                const isActive = idx === currentServerIndex;
+                return `
+                <button onclick="switchServer(${idx})" class="px-3 py-1 rounded-xl text-xs font-extrabold transition-all border ${
+                    isActive 
+                    ? 'bg-gradient-to-r from-ps-blue to-ps-electric text-black border-cyan-400 shadow-md shadow-cyan-500/20 scale-105' 
+                    : 'bg-black/40 text-gray-300 border-white/10 hover:border-cyan-400/50 hover:text-white'
+                }">
+                    ${srv.name || `Server ${idx + 1}`}
+                </button>
+                `;
+            }).join('');
+        }
+
+        function switchServer(serverIdx) {
+            currentServerIndex = serverIdx;
+            loadEpisodeStream(currentSeasonIndex, currentEpIndex, currentServerIndex);
+        }
+
+        function loadEpisodeStream(seasonIdx, epIdx, serverIdx = 0) {
             currentSeasonIndex = seasonIdx;
             currentEpIndex = epIdx;
+            currentServerIndex = serverIdx;
             renderEpisodeGrid();
 
             const currentSeason = currentActiveMedia.seasons[seasonIdx];
@@ -975,23 +1067,45 @@
             const ep = currentSeason.episodes[epIdx];
             if (!ep) return;
 
+            const servers = ep.servers || [{ name: 'Server 1', linkType: 'embed', url: ep.url || '' }];
+            renderServerPills(servers);
+
+            const activeServer = servers[serverIdx] || servers[0];
+
             const video = document.getElementById('mainVideoPlayer');
             const iframe = document.getElementById('iframePlayer');
             const controls = document.getElementById('customPlayerControls');
-            document.getElementById('playingEpTitle').innerText = `${currentSeason.seasonTitle || 'Musim ' + (seasonIdx + 1)} - Ep ${epIdx + 1}: ${ep.title}`;
+            const openExtContainer = document.getElementById('openExternalContainer');
+            const openExtLink = document.getElementById('openExternalLink');
+            const qualityContainer = document.getElementById('qualitySelectorContainer');
+
+            document.getElementById('playingEpTitle').innerText = `${currentSeason.seasonTitle || 'Musim ' + (seasonIdx + 1)} - Ep ${epIdx + 1}: ${ep.title} (${activeServer.name})`;
 
             if (hlsPlayerInstance) {
                 hlsPlayerInstance.destroy();
                 hlsPlayerInstance = null;
             }
 
-            if (ep.linkType === 'embed' || isEmbedUrl(ep.url)) {
+            // Check if YouTube URL to show fallback button
+            if (activeServer.url.includes('youtube.com') || activeServer.url.includes('youtu.be')) {
+                let ytUrl = activeServer.url;
+                if (ytUrl.includes('/embed/')) {
+                    const videoId = ytUrl.split('/embed/')[1]?.split('?')[0];
+                    ytUrl = `https://www.youtube.com/watch?v=${videoId}`;
+                }
+                openExtLink.href = ytUrl;
+                openExtContainer.classList.remove('hidden');
+            } else {
+                openExtContainer.classList.add('hidden');
+            }
+
+            if (activeServer.linkType === 'embed' || isEmbedUrl(activeServer.url)) {
                 video.pause();
                 video.classList.add('hidden');
                 controls.classList.add('hidden');
                 controls.classList.remove('flex');
                 
-                iframe.src = ep.url;
+                iframe.src = activeServer.url;
                 iframe.classList.remove('hidden');
             } else {
                 iframe.src = '';
@@ -1001,16 +1115,20 @@
                 controls.classList.remove('hidden');
                 controls.classList.add('flex');
 
-                const videoUrl = ep.url;
+                const videoUrl = activeServer.url;
 
                 if (videoUrl.includes('.m3u8') && Hls.isSupported()) {
+                    qualityContainer.classList.remove('hidden');
                     hlsPlayerInstance = new Hls();
                     hlsPlayerInstance.loadSource(videoUrl);
                     hlsPlayerInstance.attachMedia(video);
-                    hlsPlayerInstance.on(Hls.Events.MANIFEST_PARSED, function() {
+
+                    hlsPlayerInstance.on(Hls.Events.MANIFEST_PARSED, function(event, data) {
+                        populateQualitySelector(data.levels);
                         video.play().catch(()=>{});
                     });
                 } else {
+                    qualityContainer.classList.add('hidden');
                     video.src = videoUrl;
                     video.play().catch(()=>{});
                 }
@@ -1024,8 +1142,27 @@
             }
         }
 
+        function populateQualitySelector(levels) {
+            const select = document.getElementById('qualitySelect');
+            select.innerHTML = '<option value="-1" selected>Auto</option>';
+
+            if (!levels || levels.length === 0) return;
+
+            levels.forEach((lvl, idx) => {
+                const height = lvl.height || Math.round(lvl.bitrate / 1000) + 'k';
+                const label = height ? `${height}p` : `Kualitas ${idx + 1}`;
+                select.innerHTML += `<option value="${idx}">${label}</option>`;
+            });
+        }
+
+        function changeQualityLevel(levelIdx) {
+            if (!hlsPlayerInstance) return;
+            hlsPlayerInstance.currentLevel = parseInt(levelIdx);
+            showToast(`Resolusi diganti ke: ${levelIdx == -1 ? 'Otomatis' : document.getElementById('qualitySelect').options[document.getElementById('qualitySelect').selectedIndex].text}`);
+        }
+
         function isEmbedUrl(url) {
-            return url.includes('embed') || url.includes('youtube.com') || url.includes('vidsrc') || url.includes('player') || url.includes('iframe');
+            return url.includes('embed') || url.includes('youtube.com') || url.includes('vidsrc') || url.includes('player') || url.includes('iframe') || url.includes('filemoon') || url.includes('vidhide') || url.includes('dood');
         }
 
         function setupVideoEvents(video) {
@@ -1049,6 +1186,7 @@
                     continueWatching[currentActiveMedia.id] = {
                         seasonIndex: currentSeasonIndex,
                         epIndex: currentEpIndex,
+                        serverIndex: currentServerIndex,
                         epTitle: season?.episodes[currentEpIndex]?.title,
                         timestamp: video.currentTime,
                         duration: video.duration
@@ -1092,7 +1230,7 @@
             currentActiveMedia = null;
         }
 
-        // MULTI-SEASON FORM BUILDER LOGIC
+        // MULTI-SEASON & MULTI-SERVER FORM BUILDER LOGIC
         function openAddMediaModal(editMediaId = null) {
             const form = document.getElementById('mediaForm');
             form.reset();
@@ -1122,7 +1260,12 @@
                     {
                         seasonNumber: 1,
                         seasonTitle: 'Musim 1 (Season 1)',
-                        episodes: [{ title: 'Episode 1', linkType: 'direct', url: '' }]
+                        episodes: [
+                            {
+                                title: 'Episode 1',
+                                servers: [{ name: 'Server 1', linkType: 'direct', url: '' }]
+                            }
+                        ]
                     }
                 ];
             }
@@ -1166,7 +1309,12 @@
             formSeasonsState.push({
                 seasonNumber: nextNum,
                 seasonTitle: `Musim ${nextNum} (Season ${nextNum})`,
-                episodes: [{ title: 'Episode 1', linkType: 'direct', url: '' }]
+                episodes: [
+                    {
+                        title: 'Episode 1',
+                        servers: [{ name: 'Server 1', linkType: 'direct', url: '' }]
+                    }
+                ]
             });
             activeFormSeasonIdx = formSeasonsState.length - 1;
             renderFormSeasonTabs();
@@ -1186,52 +1334,89 @@
             const season = formSeasonsState[activeFormSeasonIdx] || { episodes: [] };
             document.getElementById('activeFormSeasonLabel').innerText = `Episode ${season.seasonTitle || 'Musim ' + (activeFormSeasonIdx + 1)}`;
 
-            container.innerHTML = season.episodes.map((ep, epIdx) => `
-                <div class="bg-black/30 p-4 rounded-2xl border border-white/5 space-y-3 relative ep-form-row">
-                    <div class="flex items-center justify-between">
-                        <span class="text-xs font-bold text-cyan-400">Episode #${epIdx + 1}</span>
-                        ${season.episodes.length > 1 ? `<button type="button" onclick="removeEpisodeFromForm(${epIdx})" class="text-xs text-red-400 hover:text-red-300 font-bold">Hapus</button>` : ''}
+            container.innerHTML = season.episodes.map((ep, epIdx) => {
+                const servers = ep.servers || [{ name: 'Server 1', linkType: 'direct', url: '' }];
+
+                return `
+                <div class="bg-black/30 p-4 rounded-2xl border border-white/5 space-y-3 ep-form-row" data-ep-idx="${epIdx}">
+                    <div class="flex items-center justify-between border-b border-white/5 pb-2">
+                        <div class="flex items-center gap-2">
+                            <span class="text-xs font-bold text-cyan-400">Episode #${epIdx + 1}</span>
+                            <input type="text" value="${ep.title || 'Episode ' + (epIdx + 1)}" placeholder="Judul Episode" class="form-ep-title bg-black/40 text-xs text-white px-3 py-1 rounded-xl border border-white/10 font-semibold">
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <button type="button" onclick="addServerToEpisodeForm(${epIdx})" class="text-[11px] text-cyan-400 hover:underline font-bold">+ Tambah Server</button>
+                            ${season.episodes.length > 1 ? `<button type="button" onclick="removeEpisodeFromForm(${epIdx})" class="text-xs text-red-400 hover:text-red-300 font-bold ml-2">Hapus Ep</button>` : ''}
+                        </div>
                     </div>
-                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                        <div class="space-y-1">
-                            <label class="text-[10px] text-gray-400 font-bold">Judul Episode</label>
-                            <input type="text" value="${ep.title || 'Episode ' + (epIdx + 1)}" required class="form-ep-title w-full bg-black/40 text-xs text-white px-3 py-2 rounded-xl border border-white/10">
-                        </div>
-                        <div class="space-y-1">
-                            <label class="text-[10px] text-gray-400 font-bold">Tipe Sumber</label>
-                            <select class="form-ep-type w-full bg-black/40 text-xs text-white px-3 py-2 rounded-xl border border-white/10">
-                                <option value="direct" ${ep.linkType === 'direct' ? 'selected' : ''}>Direct Stream (MP4/HLS .m3u8)</option>
-                                <option value="embed" ${ep.linkType === 'embed' ? 'selected' : ''}>Embed API / Iframe URL</option>
+
+                    <!-- Servers for this Episode -->
+                    <div class="space-y-2 servers-container">
+                        ${servers.map((srv, srvIdx) => `
+                        <div class="grid grid-cols-1 sm:grid-cols-4 gap-2 items-center srv-form-row">
+                            <input type="text" value="${srv.name || 'Server ' + (srvIdx + 1)}" placeholder="Nama Server (cth: Filemoon)" class="srv-name bg-black/50 text-[11px] text-white px-3 py-2 rounded-xl border border-white/10">
+                            <select class="srv-type bg-black/50 text-[11px] text-white px-3 py-2 rounded-xl border border-white/10">
+                                <option value="embed" ${srv.linkType === 'embed' ? 'selected' : ''}>Embed API / Iframe</option>
+                                <option value="direct" ${srv.linkType === 'direct' ? 'selected' : ''}>Direct Stream (MP4/m3u8)</option>
                             </select>
+                            <input type="url" value="${srv.url || ''}" required placeholder="https://..." class="srv-url sm:col-span-2 bg-black/50 text-[11px] text-white px-3 py-2 rounded-xl border border-white/10">
                         </div>
-                        <div class="space-y-1">
-                            <label class="text-[10px] text-gray-400 font-bold">URL Stream / Embed API *</label>
-                            <input type="url" value="${ep.url || ''}" required placeholder="https://..." class="form-ep-url w-full bg-black/40 text-xs text-white px-3 py-2 rounded-xl border border-white/10">
-                        </div>
+                        `).join('')}
                     </div>
                 </div>
-            `).join('');
+                `;
+            }).join('');
         }
 
         function saveCurrentFormEpisodesState() {
             const season = formSeasonsState[activeFormSeasonIdx];
             if (!season) return;
-            const rows = document.querySelectorAll('.ep-form-row');
+            const epRows = document.querySelectorAll('.ep-form-row');
             const eps = [];
-            rows.forEach(r => {
+
+            epRows.forEach(epRow => {
+                const epTitle = epRow.querySelector('.form-ep-title').value.trim();
+                const srvRows = epRow.querySelectorAll('.srv-form-row');
+                const servers = [];
+
+                srvRows.forEach(srvRow => {
+                    servers.push({
+                        name: srvRow.querySelector('.srv-name').value.trim() || 'Server',
+                        linkType: srvRow.querySelector('.srv-type').value,
+                        url: srvRow.querySelector('.srv-url').value.trim()
+                    });
+                });
+
                 eps.push({
-                    title: r.querySelector('.form-ep-title').value.trim(),
-                    linkType: r.querySelector('.form-ep-type').value,
-                    url: r.querySelector('.form-ep-url').value.trim()
+                    title: epTitle || 'Episode',
+                    servers: servers
                 });
             });
+
             season.episodes = eps;
         }
 
         function addEpisodeToActiveSeasonForm() {
             saveCurrentFormEpisodesState();
             const season = formSeasonsState[activeFormSeasonIdx];
-            season.episodes.push({ title: `Episode ${season.episodes.length + 1}`, linkType: 'direct', url: '' });
+            season.episodes.push({
+                title: `Episode ${season.episodes.length + 1}`,
+                servers: [{ name: 'Server 1', linkType: 'direct', url: '' }]
+            });
+            renderFormEpisodesList();
+        }
+
+        function addServerToEpisodeForm(epIdx) {
+            saveCurrentFormEpisodesState();
+            const season = formSeasonsState[activeFormSeasonIdx];
+            if (season && season.episodes[epIdx]) {
+                const srvCount = season.episodes[epIdx].servers.length + 1;
+                season.episodes[epIdx].servers.push({
+                    name: `Server ${srvCount}`,
+                    linkType: 'embed',
+                    url: ''
+                });
+            }
             renderFormEpisodesList();
         }
 
@@ -1387,7 +1572,7 @@
             const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(mediaList, null, 2));
             const dlAnchor = document.createElement('a');
             dlAnchor.setAttribute("href", dataStr);
-            dlAnchor.setAttribute("download", `streamsphere_backup_${Date.now()}.json`);
+            dlAnchor.setAttribute("download", `streamsphere_multiserver_backup_${Date.now()}.json`);
             document.body.appendChild(dlAnchor);
             dlAnchor.click();
             dlAnchor.remove();
